@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+.bar rect {
+  fill: lightgrey;
+}
+.bar text {
+  fill: #fff;
+  font: 10px sans-serif;
+}
+text
+  {font: 10px sans-serif;
+}
+ div {
+    padding:10 30;
+    margin:20 70;
+  }
+  
+p
+  {font: 13px sans-serif;
+}
+  h1 {
+    text-align: center;
+    font: 28px bold sans-serif;
+  }
+  
+  h2 {
+    font: 20px bold sans-serif;
+  }
+.svg text {
+  fill: black;
+  font: 11px sans-serif;
+}
+  
+svg {
+  padding: 0 40}
+.axis_2 text {
+  font: 10px sans-serif;
+}
+.axis_2 path,
+.axis_2 line {
+  fill: none;
+  stroke: white;
+  shape-rendering: crispEdges;
+}
+.axis_2 tick 
+  
+  
+</style>
+<body>
+<br>
+<br>
+<h1>Minimum Wage Investigation</h1>
+  
+<p align="center">Homework for Data Visualization with D3 by Zeng</p>
+<br>
+  
+<div>
+<p>This project investigates the minimum wage standard and its relation to GPD per capita around the world. It aims to provide a snapshot of country’s labor policy. </p>
+<p>The data is from wikipedia’s page: <a href=“https://en.wikipedia.org/wiki/List_of_minimum_wages_by_country”>list of minimum wages by country</a> and <a href=“http://data.worldbank.org/indicator/NY.GDP.PCAP.CD”>the GDP per Capita data of 2014 in world bank database</a>. </p> 
+ </div>
+<div class=p1>
+<h2>The Minimum Wage Distribution</h2>
+  
+<p>We take the hourly wage as the key indicator and purpose power in USD as unit and scraped information of 143 countries where there is a minimum wage policy in place. First, to understand the distribution of the minimum hourly wage, so a histogram plot is created. As shown in Figure 1, most countries’ minimum hourly wage is under four dollars in purchase power. We also draw a line of median minimum wage in red dot. </p>
+<p>The figure is designed to be interactive, when you hover over the bar, the list of countries in that range will show. </p>
+  
+  </div>
+<div class=p2>
+<h2>The Minimum Wage and GDP per Capita of G20 Countries</h2>
+  
+<p>Will rich country offer higher minimum wage? To examine the relationship, we look into G20 countries, which are the top 20 countries and political area (the European Union) that create the most GDP in the world. Three countries Russia, Italy and Greece don’t have strictly defined minimum wage information. European Union is not a country. Therefore, we only include sixteen countries in our comparison. Figure 2 ranks the countries by GDP per capita on the right side and the minimum wage on the left side, we highlight the ranking change in the slop graph in the middle. As shown in the graph, U.S. holds the second place in terms of GDP per capita PPP but the minimum wage rank is only 6. While France is the reverse. In general, European countries have better labor policies than North America and Asia Countries. </p>
+  
+  
+  </div>
+  
+<script src="//d3js.org/d3.v4.0.0-alpha.45.min.js"></script>
+<script>
+//////////////THE WAGE DISTRIBUTION GRAGH////////////////////////////
+var margin = {top: 30, right: 40, bottom: 30, left: 40},
+    svg1_width = 760 - margin.left - margin.right,
+    svg1_height = 500 - margin.top - margin.bottom;
+var x = d3.scaleLinear().range([0, svg1_width]).domain([0,16]);
+var tick_number=30
+var histogram=d3.histogram().domain(x.domain()).thresholds(x.ticks(tick_number));
+var formatCount = d3.format(",.0f");
+var svg1 = d3.select("div.p1").append("svg")
+    .attr("width", svg1_width + margin.left + margin.right)
+    .attr("height", svg1_height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+svg1.append("g")
+        .attr("class", "axis axis--x")
+        .attr("transform", "translate(0," + svg1_height + ")")
+        .call(d3.axisBottom(x));
+    
+d3.csv('newtotal.csv', function(dat){
+  
+    var hourly=[];
+  	var collection=[];
+  	for(var m=0;m<tick_number+1;m++){collection[m]=''}
+  
+	dat.forEach(function(d, i){
+    hourly.push(+d['hourly']);
+   	a=Math.floor(+d['hourly']/0.5);
+    
+    collection[eval(a)]+=(""+d['Country']+" ("+d['hourly']+"), ");
+  })
+  
+    
+    var bins = histogram(hourly);
+  
+  	var y = d3.scaleLinear()
+    .domain([0, d3.max(bins, function(d) { return d.length; })])
+    .range([svg1_height, 0]);
+    var bar = svg1.selectAll(".bar")
+        .data(bins)
+      .enter().append("g")
+        .attr("class", "bar")
+        .attr("transform", function(d) { return "translate(" + x(d.x0) + "," + y(d.length) + ")"; });
+  
+  
+    bar.append("rect")
+        .attr("x", 1)
+        .attr("width", x(bins[0].x1) - x(bins[0].x0) - 1)
+        .attr("height", function(d) { return svg1_height - y(d.length); })
+    		.attr('class', function(d, i){return "rect"+i})
+    		.on('mouseover', highlight_1)
+    		.on('mouseout', fadeout_1)
+    
+    bar.append("text")
+        .attr("dy", ".75em")
+        .attr("y", 6)
+        .attr("x", (x(bins[0].x1) - x(bins[0].x0)) / 2)
+        .attr("text-anchor", "middle")
+        .text(function(d) { return formatCount(d.length); })
+    		.style('fill',"#fff");
+////append median line to the graph
+  
+  		var median_point=d3.median(hourly);
+  
+  	svg1.append("line")
+    	.style("stroke", "red")
+  		.attr("x1", x(median_point))
+  		.attr("x2", x(median_point) )
+      .attr("y1", svg1_height)
+  		.attr("y2", margin.top)
+			.style("stroke-width", 2)
+    	.style("stroke-dasharray", ("3, 3"))
+    svg1.append("text").
+    attr("x", x(median_point)-30).
+    attr("y", margin.top+svg1_height+16)
+    .text("median "+median_point)
+    		
+  ///append countries' name to the graph and set as hidden
+   svg1.selectAll('.text').data(bins).enter().append('text')
+   		.attr("dy", ".75em")
+   		.attr('y',0)
+   		.attr("x", 200)
+   		.text(function(d, i){return "Countries with minimum wages in this range include: " + collection[i]})
+   		.attr('class', function(d,i){return "collection"+i})
+   		.style('fill','black')
+   		.style('visibility', 'hidden');
+   		
+  /////////ANIMATIONS///////////////////
+  
+  function highlight_1(d,i){
+  		d3.select(".rect"+ i).style('fill',"red")
+  		d3.select('.collection'+i).call(wrap,svg1_width*2/3)
+        .attr("transform", "translate("+(svg1_width/4)+", 30)")
+      	.style('visibility', 'visible')
+  			.style("font","12px arial,serif")}
+  
+  function fadeout_1(d,i){
+  		d3.select(".rect"+ i).style('fill',"lightgrey")
+  		d3.select('.collection'+i).style('visibility', 'hidden')}
+  
+  function wrap(text, width) {
+  text.each(function() {
+    var text = d3.select(this),
+        words = text.text().split(" ").reverse(),
+        word,
+        line = [],
+        lineNumber = 0,
+        lineHeight = 1.3, // ems
+        y = text.attr("y"),
+        dy = parseFloat(text.attr("dy")),
+        tspan = text.text(null).append("tspan").attr("x", 0).attr("y", 0).attr("dy", dy + "em");
+    while (word = words.pop()) {
+      line.push(word);
+      tspan.text(line.join(" "));
+      if (tspan.node().getComputedTextLength() > width) {
+        line.pop();
+        tspan.text(line.join(" "));
+        line = [word];
+        tspan = text.append("tspan").attr("x", 0).attr("y", y).attr("dy", ++lineNumber * lineHeight + dy + "em").text(word);
+      }
+    }
+  });
+}
+})
+/////////////////////Variables for Graph2///////////
+var margin = {top: 0, right: 40, bottom: 30, left: 40},
+    svg2_width = 900 - margin.left - margin.right,
+    section_width=250,
+  	height = 500;
+var svg = d3.select("div.chart2").append('svg')
+    .attr("width", svg2_width).attr('class','chart');
+  
+//////Graph Two SLOPE GRAPH/////////////////////////////
+d3.csv("new16.csv", function(error, data) {
+  
+  var x_gdp = d3.scaleLinear()
+    .range([0, section_width])
+  .domain([0, d3.max(data, function(d) { 
+    return +d['GDP_per_Capita']; })]);
+  
+  var x_wage = d3.scaleLinear()
+    .range([0, section_width])
+  .domain([0, d3.max(data, function(d) { 
+    return +d['Hourly_Wage']; })]);
+  
+  var xr_gdp = d3.scaleLinear()
+    .range([section_width,0])
+  .domain([0, d3.max(data, function(d) { 
+    return +d['GDP_per_Capita']; })]);
+  
+  var barHeight=(height-margin.top-margin.bottom)/data.length;
+  var text_width=105;
+  
+  var svg2= d3.select('div.p2').append('svg').
+  	attr("height",height ).attr("width", svg2_width);
+  
+  var country=[],
+      number=d3.range(1,(data.length+1));
+      rank_by_wage=[],
+      rank_by_gdp=[];
+   
+  data.forEach(function(d){
+      country.push(d['Country']);
+      rank_by_wage.push(+d['wage_rank']);
+      rank_by_gdp.push(+d['GDP_rank']);
+      });
+  
+  var y_gdp=d3.scaleOrdinal().domain(country).range(rank_by_gdp);
+  var y_wage=d3.scaleOrdinal().domain(country).range(rank_by_wage);
+  var formatCount = d3.format(",.0f");
+  
+  var bar_gdp = svg2.selectAll("g.gdp")
+      .data(data)
+    .enter().append("g")
+      .attr("transform", function(d) { 
+        return "translate("+(xr_gdp(d['GDP_per_Capita'])+margin.right)+"," 
+          +y_gdp(d['Country'])*barHeight+")"; })
+  		.attr('class', function(d,i){return 'bar'+i})
+ 
+  bar_gdp.append("rect")
+      .attr("width", function(d) { return x_gdp(+d['GDP_per_Capita']); })
+      .attr("height", parseFloat(barHeight) - 1)
+  		.attr('class', function(d,i){return 'bar'+i})
+  		.style('fill','lightgrey')
+  		.on("mouseover", highlight).on("mouseout", fadeout);
+ 
+  bar_gdp.append("text")
+    .attr("x", function(d) { 
+    return x_gdp(+d['GDP_per_Capita']) + margin.right+20; })
+      .attr("y", barHeight / 2)
+      .attr("dy", ".35em")
+      .text(function(d) { return +d['GDP_rank']+". "+d['Country']; })
+  		.attr('class', function(d,i){return 'label'+i})
+  		.attr("transform", "translate("+margin.right+",0)")
+  		.attr('text-anchor', 'end')
+  		.style('fill','black')
+  		.on("mouseover", highlight).on("mouseout", fadeout);
+  
+  var xAxis_gdp = d3.axisTop()
+    .scale(xr_gdp).ticks(6).tickSize(-height);
+  
+  svg2.append("g")
+      .attr("class", "x axis_2")
+      .attr("transform", "translate("+margin.right+",20)")
+      .call(xAxis_gdp);
+  svg2.selectAll('.gdp_text').data(data).
+  		enter().append("text")
+      .attr("x", function(d){return xr_gdp(d['GDP_per_Capita'])+margin.right-5 })
+      .attr("y", function(d){return (y_gdp(d['Country'])+0.5)*barHeight})
+      .attr("dy", ".35em")
+      .text(function(d) { return formatCount(d['GDP_per_Capita']); })
+  		.attr('class', function(d,i){return 'label'+i})
+ 			.attr('text-color','lightgrey')
+  		.attr('text-anchor', 'end')
+  		.on("mouseover", highlight).on("mouseout", fadeout);
+  
+  
+  svg2.append('text').attr("x",section_width+margin.right+text_width-5)
+    .attr('y',17)
+    .text('per capita GDP rank')
+    .attr('text-color','black')
+    .attr('text-anchor', 'end')
+  	.style('font-size', 10);
+  svg2.append('text').attr("x",margin.right-10)
+    .attr('y',17)
+    .text('($/year)')
+    .attr('text-color','black')
+    .attr('text-anchor', 'end')
+  	.style('font-size', 10);
+/////////////////////////////////
+  var bar_wage = svg2.selectAll("g.wage")
+      .data(data)
+    .enter().append("g")
+      .attr("transform", function(d) { 
+        return "translate("+(svg2_width-section_width)+"," + y_wage(d['Country']) * barHeight + ")"; });
+ 
+  bar_wage.append("rect")
+      .attr("width", function(d) { return x_wage(+d['Hourly_Wage']); })
+      .attr("height", barHeight - 1)
+  		.attr('class', function(d,i){return 'bar'+i})
+  		.style('fill','lightgrey')
+  		.on("mouseover", highlight).on("mouseout", fadeout);
+  
+  var xAxis = d3.axisTop()
+    .scale(x_wage).ticks(6).tickSize(-height)
+  	;
+    
+  svg2.append("g")
+      .attr("class", "x axis_2")
+      .attr("transform", "translate("+(svg2_width-section_width)+",20)")
+      .call(xAxis);
+ var formatCount2 = d3.format(",.1f");
+//  bar_wage.append("text")
+//      .attr("x", function(d) { return x_wage(+d['Hourly_Wage'])+10; })
+//      .attr("y", barHeight / 2)
+//      .attr("dy", ".35em")
+// 			.attr('class', function(d,i){return 'label'+i})
+//      .text(function(d) { return formatCount2(+d['Hourly_Wage']); });
+  
+	bar_wage.append("text")
+      .attr("x", -text_width+5)
+      .attr("y", barHeight / 2)
+      .attr("dy", ".35em")
+ 			.attr('class', function(d,i){return 'label'+i})
+      .text(function(d) { return +d['wage_rank']+". "+d['Country']; })
+ 			.attr('text-color','black')
+ 			.attr('text-anchor', 'start')
+  		.on("mouseover", highlight)
+    	.on("mouseout", fadeout);;
+ 
+  svg2.append('text').attr("x", svg2_width-section_width-text_width+5)
+    .attr('y',17).text('minimum wage rank')
+    .attr('text-anchor', 'start')
+    .style('font-size', 10);
+  
+  svg2.append('text').attr("x",svg2_width+margin.right)
+    .attr('y',17)
+    .text('($/hour)')
+    .attr('text-color','black')
+    .attr('text-anchor', 'end')
+  	.style('font-size', 10);
+  
+  svg2.selectAll('.text_wage').data(data).enter()
+   		.append('text')
+ 			.attr('x',function(d) { return x_wage(+d['Hourly_Wage'])+10+svg2_width-section_width; })
+ 			.attr('y', function(d){return (y_wage(d['Country'])+0.5)*barHeight})
+ 			.attr("dy", ".35em")
+ 			.attr('class', function(d,i){return 'label'+i})
+      .text(function(d) { return formatCount2(+d['Hourly_Wage']); })
+  		.on("mouseover", highlight)
+    	.on("mouseout", fadeout);
+  
+  
+ 
+ 
+  //////slope graph
+  
+    var y=d3.scaleLinear().domain([0,data.length]).range([0,height-margin.top]);
+    
+		var Formater = d3.format("0,.0f");
+  	var middle_width=svg2_width-2*section_width
+    var lines = svg2.selectAll(".line")
+				.data(data).enter()
+				.append("line")
+				.attr("x1",section_width+margin.right+text_width)
+				.attr("x2", section_width+middle_width-text_width)
+				.attr("y1", function(d,i) {
+					return (y_gdp(d['Country'])+0.5) * barHeight;
+				})
+				.attr("y2", function(d,i) {
+					return  (y_wage(d['Country'])+0.5) * barHeight  ;
+				})
+				.attr("stroke", "lightgrey")
+				.attr("stroke-width", 1)
+      	.attr('class', function(d, i){return "country"+i});
+ 
+ 
+  //////       
+  	function highlight(d,i){
+  			d3.selectAll(".country"+ i).style("stroke", "black");
+        d3.selectAll('.bar'+i).style('fill',"red");
+    		d3.selectAll('.label'+i).style('font-weight', 'bold')};
+    
+    function fadeout(d,i){
+        d3.selectAll(".country"+ i).style("stroke", "lightgrey");
+      	d3.selectAll('.bar'+i).style('fill',"lightgrey");
+      	d3.selectAll('.label'+i).style('font-weight', 'normal')
+      }
+    
+    lines.on("mouseover", highlight).on("mouseout", fadeout);  	
+  
+})
+</script>
