@@ -67,6 +67,9 @@ svg {
 <p>This project investigates the relationship between the minimum hourly wage and its relation to GPD per capita of the G20 Countries. By examing the absolute value and the ranking change of G20 Countries, we found the minimum wage is generally positively correlated to GDP per Capita. However, countries in the same GDP tier show some difference by region. This project explores the general relationship and also this nuance by region. </p>
   
 <p>The data is from wikipedia’s page: <a href=http://en.wikipedia.org/wiki/List_of_minimum_wages_by_country target="_blank">list of minimum wages by country</a> and <a href=http://data.worldbank.org/indicator/NY.GDP.PCAP.CD/ target="_blank">the GDP per Capita data of 2014 in world bank database</a>. </p> 
+
+<p>The hourly wage is set to be the key minimum wage indicator and the purchase power in current USD in year 2014 is set to be the GDP_per_capita measurement. Note, the GDP per capita (PPP based) is gross domestic product converted to international dollars using purchasing power parity rates and divided by total population. </p>
+    
  </div>
 <div class=p2>
 <p>Will rich country offer higher minimum wage? To examine the relationship, we look into the G20 countries  (which are the 20 countries and political zone like the European Union that create the most GDP in the world) and their relative ranking change by minimum wage and GDP per Capita within the G20 group. 
@@ -270,7 +273,7 @@ var legend_text=legend_color.append("text").attr("x", text_width/2).text(functio
 				.attr("y2", function(d,i) {
 					return  (y_wage(d['Country'])+0.5) * barHeight  ;
 				})
-				.attr("stroke", "lightgrey")
+				.attr("stroke", "darkgrey")
 				.attr("stroke-width", 1)
       	.attr('class', function(d, i){return "country"+i});
  
