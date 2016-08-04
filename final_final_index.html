@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style type="text/css">
+body{
+	width: 900px;
+	margin: 0px 90px;
+}
+.bar rect {
+  fill: lightgrey;
+}
+.bar text {
+  fill: #fff;
+  font: 10px sans-serif;
+}
+ 
+text
+  {font: 10px Arial, Helvetica, sans-serif;
+}
+div {
+    padding:10px 0;
+    margin: 10px 0px;
+  }
+  
+p
+  {font: 13px Helvetica, sans-serif;
+    line-height: 150%;
+}
+  h1 {
+    text-align: center;
+    font: 28px bold Arial, Helvetica, sans-serif;
+  }
+  
+  h2 {
+    font: 20px bold Arial, Helvetica, sans-serif;
+  }
+.svg text {
+  fill: black;
+  font: 11px sans-serif;
+}
+  
+svg {
+  padding: 40 0;
+  display: block;
+  margin:auto;}
+.axis_2 text {
+  font: 10px sans-serif;
+}
+.axis_2 path,
+.axis_2 line {
+  fill: none;
+  stroke: white;
+  shape-rendering: crispEdges;
+}
+.axis_2 tick 
+  
+  
+</style>
+<body>
+<br>
+<br>
+<h1>The Minimum Wage and GDP per Capita of G20 Countries</h1>
+  
+<p align="center">Homework for Data Visualization with D3 by Zeng</p>
+<br>
+  
+<div>
+<p>This project investigates the relationship between the minimum hourly wage and its relation to GPD per capita of the G20 Countries. By examing the absolute value and the ranking change of G20 Countries, we found the minimum wage is generally positively correlated to GDP per Capita. However, countries in the same GDP tier show some difference by region. This project explores the general relationship and also this nuance by region. </p>
+  
+<p>The data is from wikipedia’s page: <a href=http://en.wikipedia.org/wiki/List_of_minimum_wages_by_country target="_blank">list of minimum wages by country</a> and <a href=http://data.worldbank.org/indicator/NY.GDP.PCAP.CD/ target="_blank">the GDP per Capita data of 2014 in world bank database</a>. </p> 
+ </div>
+<div class=p2>
+<p>Will rich country offer higher minimum wage? To examine the relationship, we look into the G20 countries  (which are the 20 countries and political zone like the European Union that create the most GDP in the world) and their relative ranking change by minimum wage and GDP per Capita within the G20 group. 
+  
+ This project ended up with 16 countries out of the G20 group, because: Three countries (Russia, Italy and Greece) don’t have strictly defined minimum wage information so they are excluded. European Union is not a country and it is also excluded. 
+  
+  Figure 1 ranks the countries by GDP per capita on the right side and the minimum wage on the left side, we highlight the ranking change in the slop graph in the middle. As shown in the graph, in the rich country tier, U.S. holds the second place in terms of GDP per capita PPP but the minimum wage ranking is only 6. And France is the reverse. In the 10000 GDP per capita tier, Latin American and Caribbean Countries especially Mexico offer much less minimum wage than Turkey In general, European countries have better minimum policies than Countries in North and Latin America. </p>
+</div>
+  
+<script src="//d3js.org/d3.v4.0.0-alpha.45.min.js"></script>
+<script>
+
+
+/////////////////////Variables ///////////
+var margin = {top: 0, right: 20, bottom: 30, left: 20},
+    svg2_width = 800 - margin.left - margin.right,
+    section_width=230,
+  	height = 500;
+  
+//////The Comparison GRAPH/////////////////////////////
+d3.csv("new16.csv", function(error, data) {
+  
+  var x_gdp = d3.scaleLinear()
+    .range([0, section_width])
+  .domain([0, d3.max(data, function(d) { 
+    return +d['GDP_per_Capita']; })]);
+  
+  var x_wage = d3.scaleLinear()
+    .range([0, section_width])
+  .domain([0, d3.max(data, function(d) { 
+    return +d['Hourly_Wage']; })]);
+  
+  var xr_gdp = d3.scaleLinear()
+    .range([section_width,0])
+  .domain([0, d3.max(data, function(d) { 
+    return +d['GDP_per_Capita']; })]);
+  
+  var barHeight=(height-margin.top-margin.bottom)/data.length;
+  var text_width=105;
+  
+  var svg2= d3.select('div.p2').append('svg').
+  	attr("height",height ).attr("width", svg2_width).style('padding', 50);
+  
+  var country=[],
+      number=d3.range(1,(data.length+1));
+      rank_by_wage=[],
+      rank_by_gdp=[];
+   
+  data.forEach(function(d){
+      country.push(d['Country']);
+      rank_by_wage.push(+d['wage_rank']);
+      rank_by_gdp.push(+d['GDP_rank']);
+      });
+  
+  var y_gdp=d3.scaleOrdinal().domain(country).range(rank_by_gdp);
+  var y_wage=d3.scaleOrdinal().domain(country).range(rank_by_wage);
+  var formatCount = d3.format(",.0f");
+  
+  var region_list=['Oceania','Asia', 'Europe', "North America",'Latin America and Caribbean'];
+  var color_list=["navajowhite", "mistyrose","blanchedalmond","lightsteelblue","lightblue"];
+  var color=d3.scaleOrdinal().domain(region_list).range(color_list)	
+  
+  var bar_gdp = svg2.selectAll("g.gdp")
+      .data(data)
+    .enter().append("g")
+      .attr("transform", function(d) { 
+        return "translate("+(xr_gdp(d['GDP_per_Capita'])+margin.right)+"," 
+          +y_gdp(d['Country'])*barHeight+")"; })
+  		.attr('class', function(d,i){return 'bar'+i})
+ 
+  bar_gdp.append("rect")
+      .attr("width", function(d) { return x_gdp(+d['GDP_per_Capita']); })
+      .attr("height", parseFloat(barHeight) - 1)
+  		.attr('class', function(d,i){return 'bar'+i})
+  		.style('fill',function(d,i){return color(d['Region'])})
+  		.on("mouseover", highlight).on("mouseout", fadeout);
+ 
+  bar_gdp.append("text")
+    .attr("x", function(d) { 
+    return x_gdp(+d['GDP_per_Capita']) + text_width; })
+      .attr("y", barHeight / 2)
+      .attr("dy", ".35em")
+  		.attr("text-anchor", 'end')
+      .text(function(d) { return +d['GDP_rank']+". "+d['Country']; })
+  		.attr('class', function(d,i){return 'label'+i})
+  		.style('font-size', '11px')
+  		.attr('text-anchor', 'end')
+  		.style('fill','black')
+  		.on("mouseover", highlight).on("mouseout", fadeout);
+  
+  var xAxis_gdp = d3.axisTop()
+    .scale(xr_gdp).ticks(6).tickSize(-height);
+  
+  svg2.append("g")
+      .attr("class", "x axis_2")
+      .attr("transform", "translate("+margin.right+",20)")
+      .call(xAxis_gdp);
+  svg2.selectAll('.gdp_text').data(data).
+  		enter().append("text")
+      .attr("x", function(d){return xr_gdp(d['GDP_per_Capita'])+margin.right-5 })
+      .attr("y", function(d){return (y_gdp(d['Country'])+0.5)*barHeight})
+      .attr("dy", ".35em")
+      .text(function(d) { return formatCount(d['GDP_per_Capita']); })
+  		.attr('class', function(d,i){return 'label'+i})
+ 			.attr('text-color','lightgrey')
+  		.attr('text-anchor', 'end')
+  		.on("mouseover", highlight).on("mouseout", fadeout);
+  
+  
+  svg2.append('text').attr("x",section_width+margin.right+text_width+5)
+    .attr('y',17)
+    .text('per capita GDP rank')
+    .attr('text-color','black')
+    .attr('text-anchor', 'end').style('font-size', '11px')
+  	.style('font-weight','bold');
+  svg2.append('text').attr("x",margin.right-10)
+    .attr('y',17)
+    .text('($/year)')
+    .attr('text-color','black')
+    .attr('text-anchor', 'end')
+  	.style('font-size', 10);
+////////////////The Wage Bar Chart/////////////////
+  var bar_wage = svg2.selectAll("g.wage")
+      .data(data)
+    .enter().append("g")
+      .attr("transform", function(d) { 
+        return "translate("+(svg2_width-section_width+margin.right-margin.left)+"," + y_wage(d['Country']) * barHeight + ")"; });
+ 
+  bar_wage.append("rect")
+      .attr("width", function(d) { return x_wage(+d['Hourly_Wage']); })
+      .attr("height", barHeight - 1)
+  		.attr('class', function(d,i){return 'bar'+i})
+  		.style('fill',function(d,i){return color(d['Region'])})
+  		.on("mouseover", highlight).on("mouseout", fadeout);
+  
+  var xAxis = d3.axisTop()
+    .scale(x_wage).ticks(6).tickSize(-height)
+  	;
+    
+  svg2.append("g")
+      .attr("class", "x axis_2")
+      .attr("transform", "translate("+(svg2_width-section_width)+",20)")
+      .call(xAxis);
+ var formatCount2 = d3.format(",.1f");
+  
+	bar_wage.append("text")
+      .attr("x", -text_width)
+      .attr("y", barHeight / 2)
+      .attr("dy", ".35em")
+ 			.attr('class', function(d,i){return 'label'+i})
+      .text(function(d) { return +d['wage_rank']+". "+d['Country']; })
+ 			.attr('text-color','black')
+ 			.attr('text-anchor', 'start')
+  		.style('font-size', '11px')
+  		.on("mouseover", highlight)
+    	.on("mouseout", fadeout);;
+ 
+  svg2.append('text').attr("x", svg2_width-section_width-text_width-5)
+    .attr('y',17).text('minimum wage rank')
+    .attr('text-anchor', 'start')
+    .style('font-size', '11px')
+  	.style('font-weight','bold');
+  
+  svg2.append('text').attr("x",svg2_width+margin.right-10)
+    .attr('y',17)
+    .text('($/hour)')
+    .attr('text-color','black')
+    .attr('text-anchor', 'start')
+  	.style('font-size', 10);
+  
+  svg2.selectAll('.text_wage').data(data).enter()
+   		.append('text')
+ 			.attr('x',function(d) { return x_wage(+d['Hourly_Wage'])+10+svg2_width-section_width; })
+ 			.attr('y', function(d){return (y_wage(d['Country'])+0.5)*barHeight})
+ 			.attr("dy", ".35em")
+ 			.attr('class', function(d,i){return 'label'+i})
+      .text(function(d) { return formatCount2(+d['Hourly_Wage']); })
+  		.on("mouseover", highlight)
+    	.on("mouseout", fadeout);
+  
+var  legend_color=svg2.selectAll(".legend").data(region_list).enter().append("rect").attr("x", margin.right+160).attr('y',height+20).attr("width",15).attr("height",15).style("fill", function(d,i){return color(d)}).attr("transform",function(d,i){ return  "translate("+ 100*i +")"})
+
+var  legend_text=svg2.selectAll(".legend_text").data(region_list).enter().append("text").attr("x", margin.right+180).attr('y',height+30).text(function(d,i){return d}).attr("transform",function(d,i){ return  "translate("+ 100*i +")"})
+ 
+
+var legend_text=legend_color.append("text").attr("x", text_width/2).text(function(d,i){return d}).attr("dy", ".35em").style("fill","black")
+  //////slope graph
+  
+    var y=d3.scaleLinear().domain([0,data.length]).range([0,height-margin.top]);
+    
+		var Formater = d3.format("0,.0f");
+  	var middle_width=svg2_width-2*section_width
+    var lines = svg2.selectAll(".line")
+				.data(data).enter()
+				.append("line")
+				.attr("x1",section_width+margin.right+text_width+5)
+				.attr("x2", section_width+middle_width-text_width-5)
+				.attr("y1", function(d,i) {
+					return (y_gdp(d['Country'])+0.5) * barHeight;
+				})
+				.attr("y2", function(d,i) {
+					return  (y_wage(d['Country'])+0.5) * barHeight  ;
+				})
+				.attr("stroke", "lightgrey")
+				.attr("stroke-width", 1)
+      	.attr('class', function(d, i){return "country"+i});
+ 
+   ////////append the title to the second plot//////
+  svg2.append("text").text("Figure 1. Minimum Wage and GDP per Capita Ranking Comparision of G20 Countries").
+  attr("x", margin.right+svg2_width/2).attr("y", -20).style("text-anchor", "middle").style('font','15px bold Arial, sans-serif')
+ 
+  //////   
+  	function highlight(d,i){
+  			d3.selectAll(".country"+ i).style("stroke", "black");
+        d3.selectAll('.bar'+i).style('fill',"maroon");
+    		d3.selectAll('.label'+i).style('font-weight', 'bold')};
+    
+    function fadeout(d,i){
+        d3.selectAll(".country"+ i).style("stroke", "lightgrey");
+      	d3.selectAll('.bar'+i).style('fill',function(d,i){return color(d['Region'])});
+      	d3.selectAll('.label'+i).style('font-weight', 'normal')
+      }
+    
+    lines.on("mouseover", highlight).on("mouseout", fadeout);  	
+  
+})
+</script>

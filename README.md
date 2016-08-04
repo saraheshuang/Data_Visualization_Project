@@ -3,11 +3,13 @@ Data visualization Project
 
 ## Summary
 
-This project investigates the distribution of minimum hourly wage around the world as well as its relation to GPD per capita of the G20 Countries. In general, most countries' minimum hourly wage is under 2 USD. Examing the G20 Countries, we found the minimum wage is generally positively correlated to GDP per Capita. However, countries in the same GDP tier show some difference by region. This project explores the general relationship and also this nuance by region.
+This project investigates the relationship between the minimum hourly wage and its relation to GPD per capita of the G20 Countries. By examing the absolute value and the ranking change of G20 Countries, we found the minimum wage is generally positively correlated to GDP per Capita. However, countries in the same GDP tier show some difference by region. This project explores the general relationship and also this nuance by region.
 
 ## Design
 
 ### Histogram
+
+Histogram appears in original design. But in the end I removed it at the final version as it is not as strong as the other graph and distracts the key information.
 
 To understand the distribution, I chose the histogram plot to plot the minimum wage data. In addition, to help reader understand the specific countries in each category, I also designed a hover animation that display list of related country names when you hover over the bar. 
 
@@ -67,4 +69,3 @@ d3 bar chart
 
 d3 slopegraph
 <http://bl.ocks.org/zbjornson/2573074>
-# Data_Visualization_Project
